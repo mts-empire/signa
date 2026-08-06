@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Copy, Trash2, Plus, Sparkles, Loader2, RefreshCw } from 'lucide-react';
+import { Play, Copy, Trash2, Plus, Sparkles, Loader2 } from 'lucide-react';
 import { speakText } from '../utils/speech';
 import { refineSentenceWithGroq } from '../utils/groq';
 
@@ -9,6 +9,7 @@ interface TranslationPanelProps {
   setTranscript: React.Dispatch<React.SetStateAction<string>>;
   isMuted: boolean;
   onSaveToHistory: (text: string) => void;
+  userApiKey: string;
 }
 
 export const TranslationPanel: React.FC<TranslationPanelProps> = ({
@@ -17,6 +18,7 @@ export const TranslationPanel: React.FC<TranslationPanelProps> = ({
   setTranscript,
   isMuted,
   onSaveToHistory,
+  userApiKey,
 }) => {
   const [isAiProcessing, setIsAiProcessing] = useState(false);
   const [error, setError] = useState('');
@@ -33,7 +35,7 @@ export const TranslationPanel: React.FC<TranslationPanelProps> = ({
     setError('');
 
     try {
-      const refined = await refineSentenceWithGroq(transcript);
+      const refined = await refineSentenceWithGroq(transcript, userApiKey);
       setTranscript(refined);
       speakText(refined, isMuted);
     } catch (err: any) {
@@ -45,9 +47,9 @@ export const TranslationPanel: React.FC<TranslationPanelProps> = ({
 
   return (
     <div className="bg-[#0f172a]/90 backdrop-blur-xl border border-slate-800 rounded-3xl p-6 shadow-2xl flex flex-col justify-between space-y-6">
-      {/* Current Gesture Card */}
+      {/* Detected Token */}
       <div>
-        <h2 className="text-xs uppercase font-extrabold text-slate-400 tracking-wider mb-2">Recognized Token</h2>
+        <h2 className="text-xs uppercase font-extrabold text-slate-400 tracking-wider mb-2">Recognized Gesture Token</h2>
         <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl flex items-center justify-between">
           <span className="text-lg font-bold text-blue-400">{currentGesture}</span>
           <button
@@ -56,7 +58,7 @@ export const TranslationPanel: React.FC<TranslationPanelProps> = ({
             className="flex items-center space-x-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 px-3.5 py-2 rounded-xl text-xs font-semibold transition"
           >
             <Plus className="w-4 h-4" />
-            <span>Add</span>
+            <span>Add Word</span>
           </button>
         </div>
       </div>
@@ -83,27 +85,27 @@ export const TranslationPanel: React.FC<TranslationPanelProps> = ({
         </div>
 
         <div className="bg-slate-900/90 border border-slate-800/80 p-4 rounded-2xl min-h-[120px] text-slate-200 text-sm leading-relaxed shadow-inner">
-          {transcript || <span className="text-slate-600 italic">Captured gestures will build up here...</span>}
+          {transcript || <span className="text-slate-600 italic">Add gestures above to construct sentences...</span>}
         </div>
         {error && <p className="text-xs text-red-400 font-medium mt-2">{error}</p>}
       </div>
 
-      {/* Controls */}
+      {/* Action Buttons */}
       <div className="space-y-3">
         <button
           onClick={handleEnhance}
           disabled={!transcript || isAiProcessing}
-          className="w-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:opacity-90 disabled:opacity-40 text-white font-bold py-3.5 rounded-2xl flex items-center justify-center space-x-2 transition-all shadow-lg shadow-purple-900/30 active:scale-95"
+          className="w-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:opacity-90 disabled:opacity-40 text-white font-bold py-3.5 rounded-2xl flex items-center justify-center space-x-2 transition-all shadow-lg active:scale-95"
         >
           {isAiProcessing ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              <span>Thinking with Groq AI...</span>
+              <span>AI Thinking...</span>
             </>
           ) : (
             <>
               <Sparkles className="w-5 h-5 fill-white" />
-              <span>Convert to AI Sentence (Groq)</span>
+              <span>Enhance Sentence (Groq AI)</span>
             </>
           )}
         </button>
@@ -114,7 +116,7 @@ export const TranslationPanel: React.FC<TranslationPanelProps> = ({
           className="w-full bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 disabled:opacity-40 text-emerald-400 font-bold py-3.5 rounded-2xl flex items-center justify-center space-x-2 transition active:scale-95"
         >
           <Play className="w-5 h-5 fill-emerald-400" />
-          <span>Speak Output</span>
+          <span>Speak Sentence</span>
         </button>
       </div>
     </div>

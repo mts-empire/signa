@@ -14,3 +14,14 @@ export interface HistoryItem {
   text: string;
   timestamp: string;
 }
+
+// Global window declarations for MediaPipe CDN scripts
+declare global {
+  interface Window {
+    Hands: any;
+    Camera: any;
+    drawLandmarks: any;
+    drawConnectors: any;
+    HAND_CONNECTIONS: any;
+  }
+}

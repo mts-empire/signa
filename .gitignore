@@ -1,0 +1,18 @@
+# Security: Exclude sensitive credentials
+.env
+*.env
+
+# Cache & Build files
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+*.log
+node_modules/
+
+# Local media assets output
+*.mp4
+*.mp3
+*.png
+*.jpg
+*.jpeg

@@ -15,7 +15,6 @@ export interface HistoryItem {
   timestamp: string;
 }
 
-// Global window declarations for MediaPipe CDN scripts
 declare global {
   interface Window {
     Hands: any;

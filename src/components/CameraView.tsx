@@ -1,27 +1,34 @@
 import React, { useRef, useEffect } from 'react';
-import { Camera } from 'lucide-react';
+import { Camera, Hand, Sparkles } from 'lucide-react';
+import { classifyGesture } from '../utils/gestureRecognizer';
 
 interface CameraViewProps {
   onGestureDetected: (gesture: string) => void;
+  onCapture: (gesture: string) => void;
   setEngineStatus: (status: string) => void;
+  currentGesture: string;
 }
 
-export const CameraView: React.FC<CameraViewProps> = ({ onGestureDetected, setEngineStatus }) => {
+export const CameraView: React.FC<CameraViewProps> = ({
+  onGestureDetected,
+  onCapture,
+  setEngineStatus,
+  currentGesture,
+}) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     let cameraInstance: any = null;
 
-    const initializeMediaPipe = () => {
+    const init = () => {
       if (!window.Hands || !window.Camera) {
-        setEngineStatus('Waiting for MediaPipe scripts...');
-        setTimeout(initializeMediaPipe, 500);
+        setEngineStatus('Loading AI Tracking Engine...');
+        setTimeout(init, 500);
         return;
       }
 
-      setEngineStatus('Initializing Hand Tracker...');
-
+      setEngineStatus('Engine Active');
       const hands = new window.Hands({
         locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
       });
@@ -29,8 +36,8 @@ export const CameraView: React.FC<CameraViewProps> = ({ onGestureDetected, setEn
       hands.setOptions({
         maxNumHands: 1,
         modelComplexity: 1,
-        minDetectionConfidence: 0.7,
-        minTrackingConfidence: 0.7,
+        minDetectionConfidence: 0.75,
+        minTrackingConfidence: 0.75,
       });
 
       hands.onResults((results: any) => {
@@ -44,30 +51,20 @@ export const CameraView: React.FC<CameraViewProps> = ({ onGestureDetected, setEn
         ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
 
         if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-          for (const landmarks of results.multiHandLandmarks) {
-            if (window.drawConnectors && window.HAND_CONNECTIONS) {
-              window.drawConnectors(ctx, landmarks, window.HAND_CONNECTIONS, {
-                color: '#3b82f6',
-                lineWidth: 3,
-              });
-            }
-            if (window.drawLandmarks) {
-              window.drawLandmarks(ctx, landmarks, { color: '#60a5fa', lineWidth: 1, radius: 4 });
-            }
+          const landmarks = results.multiHandLandmarks[0];
 
-            const indexTip = landmarks[8];
-            const indexPip = landmarks[6];
-            const middleTip = landmarks[12];
-            const middlePip = landmarks[10];
-
-            if (indexTip.y < indexPip.y && middleTip.y < middlePip.y) {
-              onGestureDetected('Peace / Victory');
-            } else if (indexTip.y < indexPip.y) {
-              onGestureDetected('Pointing');
-            } else {
-              onGestureDetected('Hand Detected');
-            }
+          if (window.drawConnectors && window.HAND_CONNECTIONS) {
+            window.drawConnectors(ctx, landmarks, window.HAND_CONNECTIONS, {
+              color: '#3b82f6',
+              lineWidth: 3,
+            });
           }
+          if (window.drawLandmarks) {
+            window.drawLandmarks(ctx, landmarks, { color: '#a855f7', lineWidth: 1, radius: 4 });
+          }
+
+          const detected = classifyGesture(landmarks);
+          onGestureDetected(detected);
         } else {
           onGestureDetected('Searching for hand...');
         }
@@ -77,32 +74,47 @@ export const CameraView: React.FC<CameraViewProps> = ({ onGestureDetected, setEn
       if (videoRef.current) {
         cameraInstance = new window.Camera(videoRef.current, {
           onFrame: async () => {
-            if (videoRef.current) {
-              await hands.send({ image: videoRef.current });
-            }
+            if (videoRef.current) await hands.send({ image: videoRef.current });
           },
           width: 640,
           height: 480,
         });
         cameraInstance.start();
-        setEngineStatus('Camera Active & Ready');
       }
     };
 
-    initializeMediaPipe();
-
+    init();
     return () => {
       if (cameraInstance) cameraInstance.stop();
     };
   }, []);
 
   return (
-    <div className="relative w-full aspect-video bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex items-center justify-center">
+    <div className="relative w-full aspect-video bg-[#0d1322] border border-slate-800/80 rounded-3xl overflow-hidden shadow-2xl group">
       <video ref={videoRef} className="hidden" playsInline muted />
       <canvas ref={canvasRef} width={640} height={480} className="w-full h-full object-cover" />
-      <div className="absolute top-4 left-4 bg-slate-900/80 backdrop-blur px-3 py-1.5 rounded-lg border border-slate-700/50 flex items-center space-x-2 text-xs text-slate-300">
-        <Camera className="w-4 h-4 text-blue-400" />
-        <span>Live Processing Engine</span>
+
+      {/* Top Floating Badge */}
+      <div className="absolute top-4 left-4 flex items-center space-x-2 bg-slate-900/80 backdrop-blur-md px-4 py-2 rounded-2xl border border-slate-700/60 text-xs font-semibold text-slate-200 shadow-md">
+        <Camera className="w-4 h-4 text-purple-400 animate-pulse" />
+        <span>Live Vision Engine</span>
+      </div>
+
+      {/* Manual Capture Action Bar */}
+      <div className="absolute bottom-4 inset-x-4 flex items-center justify-between bg-slate-900/90 backdrop-blur-xl border border-slate-700/60 p-3 rounded-2xl shadow-xl">
+        <div className="flex items-center space-x-3 px-2">
+          <Hand className="w-5 h-5 text-blue-400" />
+          <span className="text-sm font-bold text-slate-100">{currentGesture}</span>
+        </div>
+
+        <button
+          onClick={() => onCapture(currentGesture)}
+          disabled={currentGesture.includes('Searching')}
+          className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:opacity-40 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all shadow-lg active:scale-95"
+        >
+          <Sparkles className="w-4 h-4" />
+          <span>Capture Gesture</span>
+        </button>
       </div>
     </div>
   );

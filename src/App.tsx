@@ -11,6 +11,7 @@ export function App() {
   const [currentGesture, setCurrentGesture] = useState('Searching for hand...');
   const [transcript, setTranscript] = useState('');
   const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [userApiKey, setUserApiKey] = useState(localStorage.getItem('GROQ_USER_KEY') || '');
 
   const handleManualCapture = (gesture: string) => {
     if (!gesture || gesture.includes('Searching')) return;
@@ -28,7 +29,13 @@ export function App() {
 
   return (
     <div className="min-h-screen bg-[#070a12] text-slate-100 flex flex-col font-sans">
-      <Navbar isMuted={isMuted} setIsMuted={setIsMuted} status={engineStatus} />
+      <Navbar
+        isMuted={isMuted}
+        setIsMuted={setIsMuted}
+        status={engineStatus}
+        userApiKey={userApiKey}
+        setUserApiKey={setUserApiKey}
+      />
 
       <main className="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
@@ -48,6 +55,7 @@ export function App() {
             setTranscript={setTranscript}
             isMuted={isMuted}
             onSaveToHistory={handleSaveToHistory}
+            userApiKey={userApiKey}
           />
         </div>
       </main>

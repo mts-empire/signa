@@ -1,4 +1,4 @@
-export const speakText = (text: str, isMuted: boolean = false) => {
+export const speakText = (text: string, isMuted: boolean = false) => {
   if (isMuted || !('speechSynthesis' in window) || !text) return;
   
   window.speechSynthesis.cancel();

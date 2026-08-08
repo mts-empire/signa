@@ -1,11 +1,11 @@
 export async function refineSentenceWithGroq(
-  text: string, 
+  gestureWord: string, 
   customApiKey?: string
 ): Promise<string> {
-  const apiKey = customApiKey || import.meta.env.VITE_GROQ_API_KEY || '';
+  const apiKey = customApiKey || localStorage.getItem('GROQ_USER_KEY') || import.meta.env.VITE_GROQ_API_KEY || '';
 
-  if (!apiKey || !text || text.includes('Searching')) {
-    return text;
+  if (!apiKey || !gestureWord || gestureWord.includes('Searching')) {
+    return gestureWord;
   }
 
   try {
@@ -20,11 +20,11 @@ export async function refineSentenceWithGroq(
         messages: [
           {
             role: 'system',
-            content: 'You are an AI sign language interpreter. Convert the input gesture word into a concise, natural 1-sentence spoken statement. Respond ONLY with the raw sentence.'
+            content: 'You are an AI sign language interpreter. Convert the input gesture word into a concise, natural 1-sentence spoken statement. Respond ONLY with the raw converted sentence.'
           },
           {
             role: 'user',
-            content: `Gesture: "${text}"`
+            content: `Gesture: "${gestureWord}"`
           }
         ],
         max_tokens: 35,
@@ -33,12 +33,12 @@ export async function refineSentenceWithGroq(
     });
 
     const data = await response.json();
-    return data.choices?.[0]?.message?.content?.trim() || text;
+    return data.choices?.[0]?.message?.content?.trim() || gestureWord;
   } catch (error) {
     console.error('Groq AI Translation Error:', error);
-    return text;
+    return gestureWord;
   }
 }
 
-// Alias export to support any components using enhanceGestureWithGroq
 export const enhanceGestureWithGroq = refineSentenceWithGroq;
+export default refineSentenceWithGroq;

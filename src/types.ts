@@ -12,6 +12,7 @@ export interface DetectionResult {
 export interface HistoryItem {
   id: string;
   text: string;
+  sentence?: string;
   timestamp: string;
 }
 

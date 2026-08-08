@@ -1,12 +1,11 @@
-// src/utils/groq.ts
 export async function enhanceGestureWithGroq(
   gestureWord: string, 
   customApiKey?: string
 ): Promise<string> {
-  const apiKey = customApiKey || import.meta.env.VITE_GROQ_API_KEY;
+  const apiKey = customApiKey || import.meta.env.VITE_GROQ_API_KEY || '';
 
-  if (!apiKey) {
-    return gestureWord; // Return raw word if key is missing
+  if (!apiKey || !gestureWord || gestureWord.includes('Searching')) {
+    return gestureWord;
   }
 
   try {

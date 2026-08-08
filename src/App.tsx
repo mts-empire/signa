@@ -95,10 +95,3 @@ export function App() {
 }
 
 export default App;
-      {/* Footer Section */}
-      <Footer />
-    </div>
-  );
-}
-
-export default App;

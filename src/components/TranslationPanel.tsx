@@ -1,124 +1,81 @@
 import React, { useState } from 'react';
-import { Play, Copy, Trash2, Plus, Sparkles, Loader2 } from 'lucide-react';
-import { speakText } from '../utils/speech';
-import { refineSentenceWithGroq } from '../utils/groq';
 
 interface TranslationPanelProps {
   currentGesture: string;
-  transcript: string;
-  setTranscript: React.Dispatch<React.SetStateAction<string>>;
+  currentSentence: string;
+  engineStatus: string;
   isMuted: boolean;
-  onSaveToHistory: (text: string) => void;
-  userApiKey: string;
+  setIsMuted: (muted: boolean) => void;
 }
 
-export const TranslationPanel: React.FC<TranslationPanelProps> = ({
+export function TranslationPanel({
   currentGesture,
-  transcript,
-  setTranscript,
+  currentSentence,
+  engineStatus,
   isMuted,
-  onSaveToHistory,
-  userApiKey,
-}) => {
-  const [isAiProcessing, setIsAiProcessing] = useState(false);
-  const [error, setError] = useState('');
+  setIsMuted,
+}: TranslationPanelProps) {
+  const [copied, setCopied] = useState(false);
 
-  const appendGesture = () => {
-    if (!currentGesture || currentGesture.includes('Searching')) return;
-    setTranscript((prev) => (prev ? `${prev} ${currentGesture}` : currentGesture));
-    speakText(currentGesture, isMuted);
-  };
-
-  const handleEnhance = async () => {
-    if (!transcript.trim()) return;
-    setIsAiProcessing(true);
-    setError('');
-
-    try {
-      const refined = await refineSentenceWithGroq(transcript, userApiKey);
-      setTranscript(refined);
-      speakText(refined, isMuted);
-    } catch (err: any) {
-      setError(err.message || 'Groq processing failed.');
-    } finally {
-      setIsAiProcessing(false);
+  const handleCopy = () => {
+    if (currentSentence) {
+      navigator.clipboard.writeText(currentSentence);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
   return (
-    <div className="bg-[#0f172a]/90 backdrop-blur-xl border border-slate-800 rounded-3xl p-6 shadow-2xl flex flex-col justify-between space-y-6">
-      {/* Detected Token */}
+    <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-xl flex flex-col justify-between h-full">
       <div>
-        <h2 className="text-xs uppercase font-extrabold text-slate-400 tracking-wider mb-2">Recognized Gesture Token</h2>
-        <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl flex items-center justify-between">
-          <span className="text-lg font-bold text-blue-400">{currentGesture}</span>
-          <button
-            onClick={appendGesture}
-            disabled={currentGesture.includes('Searching')}
-            className="flex items-center space-x-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 px-3.5 py-2 rounded-xl text-xs font-semibold transition"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Word</span>
-          </button>
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            Translation Stream
+          </span>
+          <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
+            engineStatus.includes('Active') 
+              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+              : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+          }`}>
+            {engineStatus}
+          </span>
         </div>
-      </div>
 
-      {/* Transcript Box */}
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-xs uppercase font-extrabold text-slate-400 tracking-wider">Sentence Builder</h2>
-          <div className="flex space-x-1">
-            <button onClick={() => navigator.clipboard.writeText(transcript)} className="p-2 text-slate-400 hover:text-white transition">
-              <Copy className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => {
-                if (transcript) onSaveToHistory(transcript);
-                setTranscript('');
-                setError('');
-              }}
-              className="p-2 text-slate-400 hover:text-red-400 transition"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+        <div className="space-y-4">
+          <div className="bg-slate-950/80 p-4 rounded-xl border border-slate-800">
+            <span className="text-xs text-slate-500 font-mono block mb-1">Detected Gesture</span>
+            <p className="text-lg font-semibold text-indigo-400">
+              {currentGesture || 'Waiting for gesture input...'}
+            </p>
+          </div>
+
+          <div className="bg-slate-950/80 p-4 rounded-xl border border-slate-800">
+            <span className="text-xs text-slate-500 font-mono block mb-1">AI Spoken Output</span>
+            <p className="text-base text-slate-200 min-h-[48px]">
+              {currentSentence || 'Translated output will display here.'}
+            </p>
           </div>
         </div>
-
-        <div className="bg-slate-900/90 border border-slate-800/80 p-4 rounded-2xl min-h-[120px] text-slate-200 text-sm leading-relaxed shadow-inner">
-          {transcript || <span className="text-slate-600 italic">Add gestures above to construct sentences...</span>}
-        </div>
-        {error && <p className="text-xs text-red-400 font-medium mt-2">{error}</p>}
       </div>
 
-      {/* Action Buttons */}
-      <div className="space-y-3">
+      <div className="mt-6 flex items-center justify-between gap-3 pt-4 border-t border-slate-800">
         <button
-          onClick={handleEnhance}
-          disabled={!transcript || isAiProcessing}
-          className="w-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:opacity-90 disabled:opacity-40 text-white font-bold py-3.5 rounded-2xl flex items-center justify-center space-x-2 transition-all shadow-lg active:scale-95"
+          onClick={() => setIsMuted(!isMuted)}
+          className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 font-medium transition"
         >
-          {isAiProcessing ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              <span>AI Thinking...</span>
-            </>
-          ) : (
-            <>
-              <Sparkles className="w-5 h-5 fill-white" />
-              <span>Enhance Sentence (Groq AI)</span>
-            </>
-          )}
+          {isMuted ? 'Unmute Audio' : 'Mute Audio'}
         </button>
 
         <button
-          onClick={() => speakText(transcript, isMuted)}
-          disabled={!transcript}
-          className="w-full bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 disabled:opacity-40 text-emerald-400 font-bold py-3.5 rounded-2xl flex items-center justify-center space-x-2 transition active:scale-95"
+          onClick={handleCopy}
+          disabled={!currentSentence}
+          className="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-xs text-white font-medium transition"
         >
-          <Play className="w-5 h-5 fill-emerald-400" />
-          <span>Speak Sentence</span>
+          {copied ? 'Copied!' : 'Copy Text'}
         </button>
       </div>
     </div>
   );
-};
+}
+
+export default TranslationPanel;

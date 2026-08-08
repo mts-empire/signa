@@ -119,3 +119,5 @@ export const CameraView: React.FC<CameraViewProps> = ({
     </div>
   );
 };
+export default CameraView;
+

@@ -1,4 +1,3 @@
-// src/components/HistoryLog.tsx
 import React from 'react';
 import { HistoryItem } from '../types';
 

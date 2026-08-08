@@ -10,5 +10,5 @@ export function speakText(text: string): void {
   window.speechSynthesis.speak(utterance);
 }
 
-// Export 'speak' as an alias for App.tsx
 export const speak = speakText;
+export default speakText;

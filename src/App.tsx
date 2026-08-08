@@ -1,9 +1,13 @@
 import React, { useState, useRef } from 'react';
 import Header from './components/Header';
+import Hero from './components/Hero';
 import CameraView from './components/CameraView';
 import TranslationPanel from './components/TranslationPanel';
-import HistoryLog from './components/HistoryLog';
 import GestureGuide from './components/GestureGuide';
+import HowItWorks from './components/HowItWorks';
+import About from './components/About';
+import HistoryLog from './components/HistoryLog';
+import Footer from './components/Footer';
 import { HistoryItem } from './types';
 import { speak } from './utils/speech';
 
@@ -47,24 +51,16 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#030712] text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-screen bg-[#030712] text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white scroll-smooth">
       <Header userApiKey={userApiKey} setUserApiKey={setUserApiKey} />
 
       <main className="flex-grow">
-        <section className="py-12 px-6 text-center max-w-4xl mx-auto">
-          <div className="inline-block mb-3 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold">
-            Sub-100ms Gesture AI Inference
-          </div>
-          <h1 className="text-4xl md:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-indigo-400 mb-4 tracking-tight">
-            AI Sign Language Translator
-          </h1>
-          <p className="text-slate-400 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
-            Real-time 3D hand landmark recognition powered by MediaPipe and Groq Llama 3.3.
-          </p>
-        </section>
+        {/* Hero Section */}
+        <Hero />
 
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        {/* Live Translator Interface Section */}
+        <section id="translator" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 scroll-mt-16">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
               <CameraView 
                 onGestureDetected={handleGestureCaptured}
@@ -83,20 +79,27 @@ export function App() {
               />
             </div>
           </div>
+        </section>
 
-          <div className="mb-8">
-            <GestureGuide />
-          </div>
+        {/* Gesture Cheatsheet Section */}
+        <section id="cheatsheet" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 scroll-mt-16">
+          <GestureGuide />
+        </section>
 
-          <div className="mb-8">
-            <HistoryLog history={history} setHistory={setHistory} />
-          </div>
+        {/* How It Works Section */}
+        <HowItWorks />
+
+        {/* About Section */}
+        <About />
+
+        {/* History Log Section */}
+        <section id="history" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 scroll-mt-16">
+          <HistoryLog history={history} setHistory={setHistory} />
         </section>
       </main>
 
-      <footer className="border-t border-slate-900 py-8 px-6 text-center text-xs text-slate-500">
-        Signa AI — Real-Time Sign Language Translation System
-      </footer>
+      {/* Modern Footer */}
+      <Footer />
     </div>
   );
 }
